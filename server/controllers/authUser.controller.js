@@ -1,14 +1,17 @@
 import User from '../models/user.model.js'
 import { uploadProfileImage } from '../libs/cloudinary.js'
 import fs from 'fs-extra'
+import bcrypt from 'bcryptjs'
+import { createAccessToken } from '../libs/jwt.js'
 
 export const registerUser = async (req, res) => {
 
+    const { dni, name, lastname, email, password } = req.body
+
     try {
 
-        const { dni, name, lastname, email, password } = req.body
-
         let profileImage = null
+        const passwordHash = await bcrypt.hash(password, 10)
 
         if (req.files?.profileImage) {
             const result = await uploadProfileImage(req.files.profileImage.tempFilePath)
@@ -24,14 +27,23 @@ export const registerUser = async (req, res) => {
             name,
             lastname,
             email,
-            password,
+            password: passwordHash,
             profileImage
         })
+
         const userSaved = await newUser.save()
-        return res.json(userSaved)
+        const token = await createAccessToken({ id: userSaved._id })
+
+        res.cookie('token', token)
+
+        return res.json({
+            dni: userSaved.dni,
+            name: userSaved.name,
+            email: userSaved.email,
+            profileImage: userSaved.profileImage,
+        })
 
     } catch (error) {
-        console.log(error)
         return res.status(500).json({ message: error.message })
     }
     

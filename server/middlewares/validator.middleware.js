@@ -4,7 +4,7 @@ export const validateSchema = (schema) => async (req, res, next) => {
         schema.parse(req.body)
         next()
     } catch (error) {
-        await fs.remove(req.files.profileImage.tempFilePath)
+        if(req.files) await fs.remove(req.files.profileImage.tempFilePath)
         return res.status(400).json({ error: error.errors.map(error => error.message) })
     }
 }

@@ -49,4 +49,59 @@ export const registerUser = async (req, res) => {
     
 }
 
-export const loginUser = (req, res) => res.send('Login User')
+export const loginUser = async (req, res) => {
+
+    const { email, password } = req.body
+
+    try {
+
+        const userFound = await User.findOne({ email })
+
+        if(!userFound) return res.status(400).json({ message: "User not found" })
+        
+        const isMatch = await bcrypt.compare(password, userFound.password)
+
+        if(!isMatch) return res.status(400).json({ message: "Incorrect password" })
+        
+        const token = await createAccessToken({ id: userFound._id })
+
+        res.cookie('token', token, { secure: false, sameSite: 'none' })
+        
+        res.json({
+            dni: userFound.dni,
+            name: userFound.name,
+            lastname: userFound.lastname,
+            email: userFound.email,
+            profileImage: userFound.profileImage,
+        })
+        
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+}
+
+export const logout = (req, res) => {
+    res.cookie('token', '', {
+        expires: new Date(0)
+    })
+    return res.sendStatus(200)
+}
+
+export const profile = async (req, res) => {
+
+    try {
+        
+        const userFound = await User.findById(req.user.id)
+    
+        return res.json({
+            dni: userFound.dni,
+            name: userFound.name,
+            lastname: userFound.lastname,
+            email: userFound.email,
+            profileImage: userFound.profileImage,
+        })
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+    
+}

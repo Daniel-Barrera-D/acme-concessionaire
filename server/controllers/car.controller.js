@@ -133,11 +133,13 @@ export const getCar = async(req, res) => {
     }
 }
 
-export const updateCar = async(req, res) => {
+export const updateStatusCar = async(req, res) => {
 
     const { numberPlate } = req.params
 
     try {
+
+        req.body.status = 'En venta'
         
         const car = await Car.findOneAndUpdate({ numberPlate }, req.body, {
             new: true

@@ -1,9 +1,9 @@
-import { uploadCarImages } from '../libs/cloudinary.js'
+import { deleteCarImages, uploadCarImages } from '../libs/cloudinary.js'
 import fs from 'fs-extra'
 import Car from '../models/car.model.js'
 import Client from '../models/client.model.js'
 
-export const deletedUploads = async (carImages) => {
+export const deleteUploads = async (carImages) => {
     if(carImages[0] !== undefined){
         for(const carImage of carImages){
             await fs.remove(carImage.tempFilePath)
@@ -27,14 +27,14 @@ export const registerCar = async (req, res) => {
         const uploadResults = []
 
         if(!clientFound) {
-            deletedUploads(carImages)
+            deleteUploads(carImages)
             return res.status(404).json({ message: "Client not found, please register"})
         }
 
         const carFound = await Car.findOne({ numberPlate })
 
         if(carFound) {
-            deletedUploads(carImages)
+            deleteUploads(carImages)
             return res.status(400).json({ message: "The car is already registered in the system"})
         }
 
@@ -42,7 +42,7 @@ export const registerCar = async (req, res) => {
 
         for(const carImage of carImages) {
             if(carImage.size > maxSize) {
-                deletedUploads(carImages)
+                deleteUploads(carImages)
                 return res.status(400).json({ message: "The image exceeds the allowed size (5 MB)"})
             }
             
@@ -156,6 +156,27 @@ export const updateStatusCar = async(req, res) => {
             owner: car.owner,
             publicationDate: car.updatedAt
         })
+
+    } catch (error) {
+        return res.status(404).json({ message: error.message });
+    }
+}
+
+export const deleteCar = async (req, res) => {
+
+    try {
+        
+        const { numberPlate } = req.params
+
+        const carRemoved = await Car.findOneAndDelete({ numberPlate }).populate('owner', 'dni name lastname -_id')
+
+        if(!carRemoved) return res.status(400).json({ message: "Car not found"})
+
+        for(const image of carRemoved.carImages) {
+            await deleteCarImages(image.public_id)
+        }
+
+        return res.sendStatus(204)
 
     } catch (error) {
         return res.status(404).json({ message: error.message });

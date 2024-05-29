@@ -18,3 +18,7 @@ export const uploadCarImages = async filePath => {
         folder: 'acme/carImages'
     })
 }
+
+export const deleteCarImages = async id => {
+    await cloudinary.uploader.destroy(id)
+}

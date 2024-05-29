@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import { deletedUploads } from '../controllers/car.controller.js'
+import { deleteUploads } from '../controllers/car.controller.js'
 export const validateSchema = (schema) => async (req, res, next) => { 
     try {
         schema.parse(req.body)
@@ -19,7 +19,7 @@ export const validateSchemaCar = (schema) => async (req, res, next) => {
         schema.parse(req.body)
         next()
     } catch (error) {
-        deletedUploads(carImages)
+        deleteUploads(carImages)
         return res.status(400).json({ error: error.errors.map(error => error.message) })
     }
 } 

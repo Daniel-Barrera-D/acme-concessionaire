@@ -13,6 +13,16 @@ export const registerUser = async (req, res) => {
         let profileImage = null
         const passwordHash = await bcrypt.hash(password, 10)
 
+        const userFound = await User.findOne({ $or: [
+            { dni },
+            { email }
+        ] })
+        
+        if(userFound) {
+            if(req.files) await fs.remove(req.files.profileImage.tempFilePath)
+            return res.status(400).json({ message: "The client is already registered in the system"})
+        }
+
         if (req.files?.profileImage) {
             const result = await uploadProfileImage(req.files.profileImage.tempFilePath)
             await fs.remove(req.files.profileImage.tempFilePath)
@@ -44,6 +54,7 @@ export const registerUser = async (req, res) => {
         })
 
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ message: error.message })
     }
     

@@ -10,9 +10,13 @@ export const registerSchema = z.object({
     }),
     name: z.string({
         required_error: 'Name is required'
+    }).min(3, {
+        message: 'Name must be at least 3 characters'
     }),
     lastname: z.string({
         required_error: 'Lastname is required'
+    }).min(3, {
+        message: 'Lastname must be at least 3 characters'
     }),
     email: z.string({
         required_error: 'Email is required'

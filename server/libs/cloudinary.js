@@ -12,3 +12,9 @@ export const uploadProfileImage = async filePath => {
         folder: 'acme/profileImages'
     })
 }
+
+export const uploadCarImages = async filePath => {
+    return await cloudinary.uploader.upload(filePath, {
+        folder: 'acme/carImages'
+    })
+}
